@@ -16,6 +16,7 @@
       --page-grad-1: #ffffff; --page-grad-2: #edf0f7; --field-bg: #ffffff;
       --toast-bg: #1a1d29; --on-accent: #ffffff; --panel-border: rgba(216,220,230,.9);
       --font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --input-padding-y: 10px; --input-padding-x: 12px;
     }
     html[data-font="inter"] { --font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
     html[data-font="poppins"] { --font-family: Poppins, 'Trebuchet MS', sans-serif; }
@@ -24,6 +25,8 @@
     html[data-font="roboto"] { --font-family: Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; }
     html[data-font="opensans"] { --font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif; }
     html[data-font="merriweather"] { --font-family: Merriweather, Georgia, 'Times New Roman', serif; }
+    html[data-input-size="small"] { --input-padding-y: 7px; --input-padding-x: 10px; }
+    html[data-input-size="large"] { --input-padding-y: 14px; --input-padding-x: 14px; }
     /* Colour themes (set by the Settings menu) */
     html[data-theme="ocean"]  { --accent: #1d5fd1; --tint: #e6eefc; }
     html[data-theme="forest"] { --accent: #12805c; --tint: #e3f4ec; }
@@ -96,7 +99,7 @@
     .big { font-size: 2.2rem; font-weight: 800; color: var(--ink); margin-bottom: 14px; }
     label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 4px; color: var(--ink); }
     input, select {
-      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      width: 100%; padding: var(--input-padding-y) var(--input-padding-x); border: 1px solid var(--border);
       border-radius: 12px; font-size: 1rem; font-family: inherit; margin-bottom: 10px; background: var(--field-bg); color: var(--ink);
     }
     input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
@@ -162,8 +165,8 @@
     .drop-panel h2 { font-size: 1.1rem; color: var(--ink); margin-bottom: 14px; }
     .drop-panel fieldset { border: 0; padding: 0; margin: 0 0 16px; }
     .drop-panel legend { font-weight: 700; color: var(--ink); font-size: .9rem; padding: 0; margin-bottom: 8px; }
-    .swatches, .sizes, .modes, .fonts { display: flex; gap: 10px; flex-wrap: wrap; }
-    .swatches input, .sizes input, .modes input, .fonts input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+    .swatches, .sizes, .modes, .fonts, .input-sizes { display: flex; gap: 10px; flex-wrap: wrap; }
+    .swatches input, .sizes input, .modes input, .fonts input, .input-sizes input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
     .swatches label {
       display: inline-flex; align-items: center; gap: 6px; margin: 0; cursor: pointer;
       padding: 6px 12px 6px 6px; border: 2px solid var(--border); border-radius: 999px;
@@ -173,8 +176,9 @@
     .modes label { margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; color: var(--ink); }
     .sizes label { margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; }
     .fonts label { margin: 0; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; color: var(--ink); }
-    .swatches input:checked + label, .sizes input:checked + label, .modes input:checked + label, .fonts input:checked + label { border-color: var(--accent); background: var(--tint); color: var(--accent); }
-    .swatches input:focus-visible + label, .sizes input:focus-visible + label, .modes input:focus-visible + label, .fonts input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .input-sizes label { margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; color: var(--ink); }
+    .swatches input:checked + label, .sizes input:checked + label, .modes input:checked + label, .fonts input:checked + label, .input-sizes input:checked + label { border-color: var(--accent); background: var(--tint); color: var(--accent); }
+    .swatches input:focus-visible + label, .sizes input:focus-visible + label, .modes input:focus-visible + label, .fonts input:focus-visible + label, .input-sizes input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 2px; }
     .reset { width: 100%; }
     .sizes label { color: var(--ink); }
     .swatches label { color: var(--ink); }
@@ -295,6 +299,18 @@
           <label for="f-opensans">Open Sans</label>
           <input type="radio" name="font" id="f-merriweather" value="merriweather" />
           <label for="f-merriweather">Merriweather</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Input box size</legend>
+        <div class="input-sizes">
+          <input type="radio" name="inputSize" id="is-small" value="small" />
+          <label for="is-small">Small</label>
+          <input type="radio" name="inputSize" id="is-medium" value="medium" checked />
+          <label for="is-medium">Medium</label>
+          <input type="radio" name="inputSize" id="is-large" value="large" />
+          <label for="is-large">Large</label>
         </div>
       </fieldset>
 
@@ -741,12 +757,13 @@
     const settingsPanel = $('settingsPanel');
     const notifPanel = $('notifPanel');
     const bellBtn = $('bellBtn');
-    const DEFAULTS = { theme: 'purple', size: '100', mode: 'light', font: 'system' };
+    const DEFAULTS = { theme: 'purple', size: '100', mode: 'light', font: 'system', inputSize: 'medium' };
 
     function loadSettings() {
       try {
         const loaded = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('novapaySettings')) || {});
         if (!['system', 'inter', 'poppins', 'atkinson', 'nunito', 'roboto', 'opensans', 'merriweather'].includes(loaded.font)) loaded.font = DEFAULTS.font;
+        if (!['small', 'medium', 'large'].includes(loaded.inputSize)) loaded.inputSize = DEFAULTS.inputSize;
         return loaded;
       }
       catch (e) { return Object.assign({}, DEFAULTS); }
@@ -761,15 +778,18 @@
       else root.removeAttribute('data-mode');
       if (s.font === 'system') root.removeAttribute('data-font');
       else root.setAttribute('data-font', s.font);
+      root.setAttribute('data-input-size', s.inputSize);
       root.style.fontSize = s.size + '%';
       const t = document.querySelector('input[name="theme"][value="' + s.theme + '"]');
       const z = document.querySelector('input[name="size"][value="' + s.size + '"]');
       const m = document.querySelector('input[name="mode"][value="' + (s.mode === 'dark' ? 'dark' : 'light') + '"]');
       const f = document.querySelector('input[name="font"][value="' + s.font + '"]');
+      const i = document.querySelector('input[name="inputSize"][value="' + s.inputSize + '"]');
       if (m) m.checked = true;
       if (t) t.checked = true;
       if (z) z.checked = true;
       if (f) f.checked = true;
+      if (i) i.checked = true;
     }
 
     let settings = loadSettings();
@@ -783,6 +803,8 @@
       r.addEventListener('change', () => { settings.size = r.value; applySettings(settings); saveSettings(settings); }));
     document.querySelectorAll('input[name="font"]').forEach((r) =>
       r.addEventListener('change', () => { settings.font = r.value; applySettings(settings); saveSettings(settings); }));
+    document.querySelectorAll('input[name="inputSize"]').forEach((r) =>
+      r.addEventListener('change', () => { settings.inputSize = r.value; applySettings(settings); saveSettings(settings); }));
 
     $('resetBtn').addEventListener('click', () => {
       settings = Object.assign({}, DEFAULTS);
