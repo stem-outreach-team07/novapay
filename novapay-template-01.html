@@ -12,7 +12,11 @@
       --shadow: 0 12px 30px rgba(26, 29, 41, 0.08); --radius: 20px;
       --page-grad-1: #ffffff; --page-grad-2: #edf0f7; --field-bg: #ffffff;
       --toast-bg: #1a1d29; --on-accent: #ffffff; --panel-border: rgba(216,220,230,.9);
+      --font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     }
+    html[data-font="inter"] { --font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    html[data-font="poppins"] { --font-family: Poppins, 'Trebuchet MS', sans-serif; }
+    html[data-font="atkinson"] { --font-family: 'Atkinson Hyperlegible', Arial, sans-serif; }
     /* Colour themes (set by the Settings menu) */
     html[data-theme="ocean"]  { --accent: #1d5fd1; --tint: #e6eefc; }
     html[data-theme="forest"] { --accent: #12805c; --tint: #e3f4ec; }
@@ -36,7 +40,7 @@
     html { font-size: 100%; }
     html, body { margin: 0; min-height: 100%; }
     body {
-      font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-family: var(--font-family);
       background: radial-gradient(circle at top, var(--page-grad-1) 0%, var(--bg) 45%, var(--page-grad-2) 100%);
       color: var(--text); line-height: 1.5; padding: 32px 16px 48px;
     }
@@ -62,13 +66,13 @@
     label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 4px; color: var(--ink); }
     input, select {
       width: 100%; padding: 10px 12px; border: 1px solid var(--border);
-      border-radius: 12px; font-size: 1rem; margin-bottom: 10px; background: var(--field-bg); color: var(--ink);
+      border-radius: 12px; font-size: 1rem; font-family: inherit; margin-bottom: 10px; background: var(--field-bg); color: var(--ink);
     }
     input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     .row { display: flex; gap: 10px; flex-wrap: wrap; }
     button {
       flex: 1; padding: 10px 14px; border-radius: 999px; border: 0;
-      background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: .95rem; cursor: pointer;
+      background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: .95rem; font-family: inherit; cursor: pointer;
     }
     button.alt { background: var(--tint); color: var(--accent); }
     .msg { min-height: 1.4em; margin-top: 10px; font-weight: 600; font-size: .92rem; }
@@ -127,8 +131,8 @@
     .drop-panel h2 { font-size: 1.1rem; color: var(--ink); margin-bottom: 14px; }
     .drop-panel fieldset { border: 0; padding: 0; margin: 0 0 16px; }
     .drop-panel legend { font-weight: 700; color: var(--ink); font-size: .9rem; padding: 0; margin-bottom: 8px; }
-    .swatches, .sizes, .modes { display: flex; gap: 10px; flex-wrap: wrap; }
-    .swatches input, .sizes input, .modes input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+    .swatches, .sizes, .modes, .fonts { display: flex; gap: 10px; flex-wrap: wrap; }
+    .swatches input, .sizes input, .modes input, .fonts input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
     .swatches label {
       display: inline-flex; align-items: center; gap: 6px; margin: 0; cursor: pointer;
       padding: 6px 12px 6px 6px; border: 2px solid var(--border); border-radius: 999px;
@@ -137,8 +141,9 @@
     .dot { width: 22px; height: 22px; border-radius: 50%; display: inline-block; }
     .modes label { margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; color: var(--ink); }
     .sizes label { margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; }
-    .swatches input:checked + label, .sizes input:checked + label, .modes input:checked + label { border-color: var(--accent); background: var(--tint); color: var(--accent); }
-    .swatches input:focus-visible + label, .sizes input:focus-visible + label, .modes input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .fonts label { margin: 0; cursor: pointer; padding: 8px 12px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; color: var(--ink); }
+    .swatches input:checked + label, .sizes input:checked + label, .modes input:checked + label, .fonts input:checked + label { border-color: var(--accent); background: var(--tint); color: var(--accent); }
+    .swatches input:focus-visible + label, .sizes input:focus-visible + label, .modes input:focus-visible + label, .fonts input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 2px; }
     .reset { width: 100%; }
     .sizes label { color: var(--ink); }
     .swatches label { color: var(--ink); }
@@ -237,6 +242,20 @@
           <label for="s-medium" style="font-size:1rem">Medium</label>
           <input type="radio" name="size" id="s-large" value="120" />
           <label for="s-large" style="font-size:1.15rem">Large</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Font style</legend>
+        <div class="fonts">
+          <input type="radio" name="font" id="f-system" value="system" checked />
+          <label for="f-system">System</label>
+          <input type="radio" name="font" id="f-inter" value="inter" />
+          <label for="f-inter">Inter</label>
+          <input type="radio" name="font" id="f-poppins" value="poppins" />
+          <label for="f-poppins">Poppins</label>
+          <input type="radio" name="font" id="f-atkinson" value="atkinson" />
+          <label for="f-atkinson">Atkinson Hyperlegible</label>
         </div>
       </fieldset>
 
@@ -651,16 +670,20 @@
     $('goalTarget').addEventListener('input', render);
     render();
 
-    /* ---------- Settings: colour + text size ---------- */
+    /* ---------- Settings: appearance ---------- */
     const root = document.documentElement;
     const settingsBtn = $('settingsBtn');
     const settingsPanel = $('settingsPanel');
     const notifPanel = $('notifPanel');
     const bellBtn = $('bellBtn');
-    const DEFAULTS = { theme: 'purple', size: '100', mode: 'light' };
+    const DEFAULTS = { theme: 'purple', size: '100', mode: 'light', font: 'system' };
 
     function loadSettings() {
-      try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('novapaySettings')) || {}); }
+      try {
+        const loaded = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('novapaySettings')) || {});
+        if (!['system', 'inter', 'poppins', 'atkinson'].includes(loaded.font)) loaded.font = DEFAULTS.font;
+        return loaded;
+      }
       catch (e) { return Object.assign({}, DEFAULTS); }
     }
     function saveSettings(s) {
@@ -671,13 +694,17 @@
       else root.setAttribute('data-theme', s.theme);
       if (s.mode === 'dark') root.setAttribute('data-mode', 'dark');
       else root.removeAttribute('data-mode');
+      if (s.font === 'system') root.removeAttribute('data-font');
+      else root.setAttribute('data-font', s.font);
       root.style.fontSize = s.size + '%';
       const t = document.querySelector('input[name="theme"][value="' + s.theme + '"]');
       const z = document.querySelector('input[name="size"][value="' + s.size + '"]');
       const m = document.querySelector('input[name="mode"][value="' + (s.mode === 'dark' ? 'dark' : 'light') + '"]');
+      const f = document.querySelector('input[name="font"][value="' + s.font + '"]');
       if (m) m.checked = true;
       if (t) t.checked = true;
       if (z) z.checked = true;
+      if (f) f.checked = true;
     }
 
     let settings = loadSettings();
@@ -689,6 +716,8 @@
       r.addEventListener('change', () => { settings.mode = r.value; applySettings(settings); saveSettings(settings); }));
     document.querySelectorAll('input[name="size"]').forEach((r) =>
       r.addEventListener('change', () => { settings.size = r.value; applySettings(settings); saveSettings(settings); }));
+    document.querySelectorAll('input[name="font"]').forEach((r) =>
+      r.addEventListener('change', () => { settings.font = r.value; applySettings(settings); saveSettings(settings); }));
 
     $('resetBtn').addEventListener('click', () => {
       settings = Object.assign({}, DEFAULTS);
