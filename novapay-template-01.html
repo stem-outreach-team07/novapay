@@ -8,7 +8,7 @@
     :root {
       --bg: #f4f5f9; --card: #ffffff; --ink: #1a1d29; --text: #374151;
       --muted: #5b6270; --border: #d8dce6; --accent: #5a50e0; --tint: #eeedfb;
-      --good: #12805c; --bad: #b42318;
+      --good: #12805c; --bad: #b42318; --warn: #b45309;
       --shadow: 0 12px 30px rgba(26, 29, 41, 0.08); --radius: 20px;
     }
     /* Colour themes (set by the Settings menu) */
@@ -39,16 +39,17 @@
     h1 { font-size: clamp(2rem, 4vw, 3rem); color: var(--ink); margin-bottom: 12px; }
     .lede { max-width: 60ch; margin-bottom: 8px; }
     .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+    .grid.second { margin-top: 18px; }
     .panel { padding: 20px; }
     .panel h2 { color: var(--ink); font-size: 1.2rem; margin-bottom: 6px; }
     .hint { color: var(--muted); font-size: .92rem; margin-bottom: 14px; }
     .big { font-size: 2.2rem; font-weight: 800; color: var(--ink); margin-bottom: 14px; }
     label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 4px; color: var(--ink); }
-    input {
+    input, select {
       width: 100%; padding: 10px 12px; border: 1px solid var(--border);
-      border-radius: 12px; font-size: 1rem; margin-bottom: 10px;
+      border-radius: 12px; font-size: 1rem; margin-bottom: 10px; background: #fff; color: var(--ink);
     }
-    input:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     .row { display: flex; gap: 10px; flex-wrap: wrap; }
     button {
       flex: 1; padding: 10px 14px; border-radius: 999px; border: 0;
@@ -59,6 +60,8 @@
     .msg.good { color: var(--good); } .msg.bad { color: var(--bad); }
     .bar { height: 16px; background: var(--tint); border-radius: 999px; overflow: hidden; margin: 10px 0; }
     .fill { height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+    .fill.warn { background: var(--warn); }
+    .fill.full { background: var(--bad); }
     ul { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; }
     li {
       display: flex; justify-content: space-between; gap: 8px;
@@ -66,56 +69,114 @@
     }
     .plus { color: var(--good); font-weight: 700; } .minus { color: var(--bad); font-weight: 700; }
     .tips { margin-top: 18px; padding: 18px 20px; background: var(--tint); border-radius: 16px; color: var(--ink); }
+    .toggle-line { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .toggle-line input { width: auto; margin: 0; }
+    .toggle-line label { margin: 0; }
 
-    /* Settings */
+    /* Top-right controls */
     .settings-wrap { position: fixed; top: 16px; right: 16px; z-index: 10; }
-    .settings-btn {
-      flex: none; display: inline-flex; align-items: center; gap: 8px;
-      padding: 10px 16px; box-shadow: var(--shadow);
+    .top-row { display: flex; gap: 10px; justify-content: flex-end; }
+    .settings-btn, .bell-btn {
+      flex: none; display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 20px; border-radius: 999px; border: 3px solid #ffffff;
+      background: var(--accent); color: #ffffff; font-weight: 900; font-size: 1rem;
+      letter-spacing: .02em; text-transform: uppercase; cursor: pointer; position: relative;
+      box-shadow: 0 14px 30px rgba(26, 29, 41, 0.35), 0 0 0 4px color-mix(in srgb, var(--accent) 32%, transparent);
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
     }
-    .settings-panel {
-      position: absolute; top: calc(100% + 10px); right: 0; width: min(320px, calc(100vw - 32px));
+    .bell-btn { padding: 13px 16px; }
+    .settings-btn:hover, .bell-btn:hover {
+      transform: translateY(-2px) scale(1.01); filter: brightness(1.06);
+      box-shadow: 0 18px 34px rgba(26, 29, 41, 0.38), 0 0 0 5px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+    .settings-btn:active, .bell-btn:active { transform: translateY(0); filter: brightness(.98); }
+    .settings-btn:focus-visible, .bell-btn:focus-visible { outline: 4px solid #111827; outline-offset: 2px; }
+    .settings-btn span[aria-hidden="true"], .bell-btn span[aria-hidden="true"] { font-size: 1.2rem; line-height: 1; }
+    .badge {
+      position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; padding: 0 6px;
+      border-radius: 999px; background: var(--bad); color: #fff; font-size: .75rem; font-weight: 800;
+      display: inline-flex; align-items: center; justify-content: center; border: 2px solid #fff;
+    }
+    .badge[hidden] { display: none; }
+
+    .drop-panel {
+      position: absolute; top: calc(100% + 10px); right: 0; width: min(340px, calc(100vw - 32px));
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 16px; box-shadow: var(--shadow); padding: 18px;
+      border-radius: 16px; box-shadow: var(--shadow); padding: 18px; max-height: 70vh; overflow: auto;
     }
-    .settings-panel[hidden] { display: none; }
-    .settings-panel h2 { font-size: 1.1rem; color: var(--ink); margin-bottom: 14px; }
-    .settings-panel fieldset { border: 0; padding: 0; margin: 0 0 16px; }
-    .settings-panel legend { font-weight: 700; color: var(--ink); font-size: .9rem; padding: 0; margin-bottom: 8px; }
+    .drop-panel[hidden] { display: none; }
+    .drop-panel h2 { font-size: 1.1rem; color: var(--ink); margin-bottom: 14px; }
+    .drop-panel fieldset { border: 0; padding: 0; margin: 0 0 16px; }
+    .drop-panel legend { font-weight: 700; color: var(--ink); font-size: .9rem; padding: 0; margin-bottom: 8px; }
     .swatches, .sizes { display: flex; gap: 10px; flex-wrap: wrap; }
-    .swatches input, .sizes input {
-      position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0;
-    }
+    .swatches input, .sizes input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
     .swatches label {
       display: inline-flex; align-items: center; gap: 6px; margin: 0; cursor: pointer;
       padding: 6px 12px 6px 6px; border: 2px solid var(--border); border-radius: 999px;
       font-weight: 600; font-size: .85rem;
     }
     .dot { width: 22px; height: 22px; border-radius: 50%; display: inline-block; }
-    .sizes label {
-      margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border);
-      border-radius: 999px; font-weight: 700;
-    }
-    .swatches input:checked + label, .sizes input:checked + label {
-      border-color: var(--accent); background: var(--tint); color: var(--accent);
-    }
-    .swatches input:focus-visible + label, .sizes input:focus-visible + label {
-      outline: 3px solid var(--accent); outline-offset: 2px;
-    }
+    .sizes label { margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border); border-radius: 999px; font-weight: 700; }
+    .swatches input:checked + label, .sizes input:checked + label { border-color: var(--accent); background: var(--tint); color: var(--accent); }
+    .swatches input:focus-visible + label, .sizes input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 2px; }
     .reset { width: 100%; }
 
+    /* Notifications */
+    .notif-item { display: block; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .notif-item .when { color: var(--muted); font-size: .8rem; }
+    .notif-item .t { font-weight: 700; color: var(--ink); }
+    .notif-empty { color: var(--muted); font-size: .92rem; }
+    .toasts {
+      position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; z-index: 20;
+      display: flex; flex-direction: column; gap: 10px; width: min(420px, calc(100vw - 32px));
+    }
+    .toast {
+      background: var(--ink); color: #fff; padding: 14px 16px; border-radius: 14px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.3); border-left: 6px solid var(--accent);
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .toast.good { border-left-color: #34d399; }
+    .toast.warn { border-left-color: #fbbf24; }
+    .toast.bad  { border-left-color: #f87171; }
+    .toast strong { display: block; }
+    .toast button {
+      flex: none; background: transparent; color: #fff; padding: 0 6px; font-size: 1.2rem; line-height: 1;
+    }
+
     @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-    /* Leave room for the settings button on small screens */
-    @media (max-width: 600px) { body { padding-top: 72px; } }
+    @media (max-width: 600px) {
+      body { padding-top: 84px; }
+      .settings-wrap { top: 12px; right: 12px; }
+      .settings-btn { padding: 12px 16px; font-size: .95rem; }
+      .bell-btn { padding: 12px 14px; }
+    }
   </style>
 </head>
 <body>
-  <!-- Settings (top right) -->
+  <!-- Top-right controls: notifications + settings -->
   <div class="settings-wrap">
-    <button class="settings-btn" id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel">
-      <span aria-hidden="true">⚙️</span> Settings
-    </button>
-    <div class="settings-panel" id="settingsPanel" role="dialog" aria-label="Settings" hidden>
+    <div class="top-row">
+      <button class="bell-btn" id="bellBtn" aria-expanded="false" aria-controls="notifPanel" aria-label="Notifications">
+        <span aria-hidden="true">🔔</span>
+        <span class="badge" id="badge" hidden>0</span>
+      </button>
+      <button class="settings-btn" id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel">
+        <span aria-hidden="true">⚙️</span> Settings
+      </button>
+    </div>
+
+    <!-- Notification centre -->
+    <div class="drop-panel" id="notifPanel" role="dialog" aria-label="Notifications" hidden>
+      <h2>Notifications</h2>
+      <ul id="notifList" style="max-height:none"></ul>
+      <p class="notif-empty" id="notifEmpty">Nothing yet. Add money or check your balance!</p>
+      <div class="row" style="margin-top:12px">
+        <button class="alt" id="clearNotifs" type="button">Clear all</button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="drop-panel" id="settingsPanel" role="dialog" aria-label="Settings" hidden>
       <h2>Make it yours</h2>
 
       <fieldset>
@@ -150,6 +211,9 @@
     </div>
   </div>
 
+  <!-- Pop-up messages -->
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
   <main class="shell">
     <section class="hero" aria-labelledby="title">
       <div class="eyebrow">NovaPay for teens</div>
@@ -170,6 +234,9 @@
         <div class="row">
           <button id="addBtn">Add money</button>
           <button id="spendBtn" class="alt">Spend money</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button id="checkBtn" class="alt" type="button">🔍 Check my balance</button>
         </div>
         <p class="msg" id="walletMsg" role="status"></p>
       </section>
@@ -198,6 +265,65 @@
       </section>
     </div>
 
+    <div class="grid second">
+      <!-- Feature 4: Spending limit -->
+      <section class="panel" aria-labelledby="limit-h">
+        <h2 id="limit-h">Spending Limit</h2>
+        <p class="hint">Set a limit and we'll warn you as you get close.</p>
+        <label for="limitInput">My limit (£)</label>
+        <input id="limitInput" type="number" min="1" step="1" value="30" />
+        <div class="bar" aria-hidden="true"><div class="fill" id="limitFill"></div></div>
+        <p id="limitText"><strong>£0.00</strong> spent of £30.00</p>
+        <div class="row" style="margin-top:10px">
+          <button id="resetSpentBtn" class="alt" type="button">Start a new week</button>
+        </div>
+        <p class="msg" id="limitMsg" role="status"></p>
+      </section>
+
+      <!-- Feature 5: Parent top-up -->
+      <section class="panel" aria-labelledby="parent-h">
+        <h2 id="parent-h">Parent Top-up</h2>
+        <p class="hint">Pretend a parent or carer sends you pocket money.</p>
+        <label for="parentName">Who is sending it?</label>
+        <input id="parentName" type="text" maxlength="20" value="Mum" />
+        <label for="parentAmount">Amount (£)</label>
+        <input id="parentAmount" type="number" min="0" step="0.01" value="10" />
+        <div class="row">
+          <button id="parentBtn" type="button">Send pocket money</button>
+        </div>
+        <p class="msg" id="parentMsg" role="status"></p>
+      </section>
+
+      <!-- Feature 6: Notification settings -->
+      <section class="panel" aria-labelledby="nset-h">
+        <h2 id="nset-h">Notification Settings</h2>
+        <p class="hint">Choose which alerts you want.</p>
+        <div class="toggle-line">
+          <input type="checkbox" id="nBalance" checked />
+          <label for="nBalance">Balance check alerts</label>
+        </div>
+        <div class="toggle-line">
+          <input type="checkbox" id="nParent" checked />
+          <label for="nParent">Parent money alerts</label>
+        </div>
+        <div class="toggle-line">
+          <input type="checkbox" id="nLimit" checked />
+          <label for="nLimit">Spending limit alerts</label>
+        </div>
+        <label for="remindEvery">Remind me to check my balance</label>
+        <select id="remindEvery">
+          <option value="0">Never</option>
+          <option value="60">Every 1 minute (demo)</option>
+          <option value="300">Every 5 minutes</option>
+          <option value="900">Every 15 minutes</option>
+        </select>
+        <div class="row">
+          <button id="deviceBtn" class="alt" type="button">Turn on device alerts</button>
+        </div>
+        <p class="msg" id="deviceMsg" role="status"></p>
+      </section>
+    </div>
+
     <section class="tips" aria-label="Money tips">
       <strong>Tip of the moment:</strong> <span id="tip"></span>
     </section>
@@ -206,6 +332,7 @@
   <script>
     let balance = 50;
     let saved = 0;
+    let spent = 0; // money spent since the limit was last reset (not counting savings)
     const activity = [{ text: 'Starter money', amount: 50 }];
 
     const $ = (id) => document.getElementById(id);
@@ -215,7 +342,8 @@
       'Save a little every time money comes in, even 10% adds up.',
       'Wait a day before buying something you want. Still want it? Great!',
       'Needs first (food, travel), wants second (games, snacks).',
-      'A balance is your money minus what you have spent.'
+      'A balance is your money minus what you have spent.',
+      'Checking your balance often helps you avoid nasty surprises.'
     ];
     $('tip').textContent = tips[Math.floor(Math.random() * tips.length)];
 
@@ -225,6 +353,174 @@
       el.className = 'msg ' + (good ? 'good' : 'bad');
     }
 
+    /* ---------- Notifications ---------- */
+    const notifications = [];
+    let unread = 0;
+    let deviceAlerts = false;
+    const ICONS = { good: '✅', warn: '⚠️', bad: '🛑', info: '💬' };
+
+    function updateBadge() {
+      $('badge').textContent = unread;
+      $('badge').hidden = unread === 0;
+      $('bellBtn').setAttribute('aria-label', 'Notifications' + (unread ? ', ' + unread + ' new' : ''));
+    }
+
+    function renderNotifs() {
+      const list = $('notifList');
+      list.innerHTML = '';
+      notifications.forEach((n) => {
+        const li = document.createElement('li');
+        li.className = 'notif-item';
+        const t = document.createElement('div');
+        t.className = 't';
+        t.textContent = ICONS[n.kind] + ' ' + n.title;
+        const b = document.createElement('div');
+        b.textContent = n.body;
+        const w = document.createElement('div');
+        w.className = 'when';
+        w.textContent = n.time;
+        li.append(t, b, w);
+        list.appendChild(li);
+      });
+      $('notifEmpty').hidden = notifications.length > 0;
+    }
+
+    function showToast(n) {
+      const el = document.createElement('div');
+      el.className = 'toast ' + n.kind;
+      el.setAttribute('role', n.kind === 'bad' ? 'alert' : 'status');
+      const icon = document.createElement('span');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = ICONS[n.kind];
+      const text = document.createElement('div');
+      text.style.flex = '1';
+      const s = document.createElement('strong');
+      s.textContent = n.title;
+      text.append(s, n.body);
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.setAttribute('aria-label', 'Dismiss');
+      close.textContent = '×';
+      close.addEventListener('click', () => el.remove());
+      el.append(icon, text, close);
+      $('toasts').appendChild(el);
+      setTimeout(() => el.remove(), 6000);
+    }
+
+    // type: 'balance' | 'parent' | 'limit' (matches the notification settings)
+    function notify(type, kind, title, body) {
+      const enabled = { balance: $('nBalance').checked, parent: $('nParent').checked, limit: $('nLimit').checked };
+      if (enabled[type] === false) return;
+      const n = { kind, title, body, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      notifications.unshift(n);
+      if (notifications.length > 30) notifications.pop();
+      if (notifPanel.hidden) unread++;
+      updateBadge();
+      renderNotifs();
+      showToast(n);
+      if (deviceAlerts && 'Notification' in window && Notification.permission === 'granted') {
+        try { new Notification('NovaPay: ' + title, { body }); } catch (e) {}
+      }
+    }
+
+    $('deviceBtn').addEventListener('click', async () => {
+      if (!('Notification' in window)) return say('deviceMsg', 'Your browser does not support device alerts.', false);
+      if (Notification.permission === 'denied') return say('deviceMsg', 'Device alerts are blocked. Allow them in your browser settings.', false);
+      const result = await Notification.requestPermission();
+      deviceAlerts = result === 'granted';
+      say('deviceMsg', deviceAlerts ? 'Device alerts are on!' : 'Device alerts stay off.', deviceAlerts);
+    });
+
+    $('clearNotifs').addEventListener('click', () => {
+      notifications.length = 0; unread = 0; updateBadge(); renderNotifs();
+    });
+
+    /* Balance check + reminders */
+    function checkBalance(fromReminder) {
+      const left = parseFloat($('limitInput').value) > 0 ? Math.max(0, parseFloat($('limitInput').value) - spent) : null;
+      let body = 'You have ' + money(balance) + ' in your wallet and ' + money(saved) + ' saved.';
+      if (left !== null) body += ' You can spend ' + money(left) + ' more before your limit.';
+      notify('balance', 'info', fromReminder ? 'Time to check your balance' : 'Balance check', body);
+      say('walletMsg', 'You have ' + money(balance) + '.', true);
+    }
+    $('checkBtn').addEventListener('click', () => checkBalance(false));
+
+    let reminderTimer = null;
+    $('remindEvery').addEventListener('change', () => {
+      clearInterval(reminderTimer);
+      const secs = parseInt($('remindEvery').value, 10);
+      if (secs > 0) reminderTimer = setInterval(() => checkBalance(true), secs * 1000);
+    });
+
+    /* ---------- Spending limit ---------- */
+    let warned80 = false;
+    let reached = false;
+
+    function renderLimit() {
+      const limit = parseFloat($('limitInput').value) || 0;
+      const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
+      const f = $('limitFill');
+      f.style.width = pct + '%';
+      f.className = 'fill' + (pct >= 100 ? ' full' : pct >= 80 ? ' warn' : '');
+      $('limitText').innerHTML = '';
+      const s = document.createElement('strong');
+      s.textContent = money(spent);
+      $('limitText').append(s, ' spent of ' + money(limit));
+    }
+
+    // Returns true if the spend is allowed
+    function checkLimitBefore(n) {
+      const limit = parseFloat($('limitInput').value) || 0;
+      if (limit > 0 && spent + n > limit) {
+        const left = Math.max(0, limit - spent);
+        say('walletMsg', 'That is over your limit. You can spend ' + money(left) + ' more.', false);
+        notify('limit', 'bad', 'Over your limit!', 'That purchase would go over your ' + money(limit) + ' limit. You have ' + money(left) + ' left to spend.');
+        return false;
+      }
+      return true;
+    }
+
+    function checkLimitAfter() {
+      const limit = parseFloat($('limitInput').value) || 0;
+      renderLimit();
+      if (limit <= 0) return;
+      if (spent >= limit && !reached) {
+        reached = true;
+        say('limitMsg', 'You have reached your spending limit.', false);
+        notify('limit', 'bad', 'Spending limit reached', 'You have spent ' + money(spent) + ' of your ' + money(limit) + ' limit. No more spending this week!');
+      } else if (spent >= limit * 0.8 && !warned80 && spent < limit) {
+        warned80 = true;
+        say('limitMsg', 'Careful, you are close to your limit.', false);
+        notify('limit', 'warn', 'Nearly at your limit', 'You have spent ' + money(spent) + ' of ' + money(limit) + '. Only ' + money(limit - spent) + ' left.');
+      }
+    }
+
+    $('limitInput').addEventListener('input', () => {
+      const limit = parseFloat($('limitInput').value) || 0;
+      warned80 = limit > 0 && spent >= limit * 0.8;
+      reached = limit > 0 && spent >= limit;
+      renderLimit();
+    });
+
+    $('resetSpentBtn').addEventListener('click', () => {
+      spent = 0; warned80 = false; reached = false;
+      renderLimit();
+      say('limitMsg', 'Fresh start! Your spending is back to £0.00.', true);
+    });
+
+    /* ---------- Parent top-up ---------- */
+    $('parentBtn').addEventListener('click', () => {
+      const n = parseFloat($('parentAmount').value);
+      const who = $('parentName').value.trim() || 'A parent';
+      if (!(n > 0)) return say('parentMsg', 'Type an amount bigger than 0 first.', false);
+      balance += n;
+      activity.push({ text: 'From ' + who, amount: n });
+      say('parentMsg', who + ' sent you ' + money(n) + '!', true);
+      notify('parent', 'good', 'Money received!', who + ' added ' + money(n) + ' to your wallet. New balance: ' + money(balance) + '.');
+      render();
+    });
+
+    /* ---------- Wallet, goal, activity ---------- */
     function render() {
       $('balance').textContent = money(balance);
       const target = parseFloat($('goalTarget').value) || 1;
@@ -247,6 +543,7 @@
         li.append(left, right);
         list.appendChild(li);
       });
+      renderLimit();
     }
 
     function readAmount() {
@@ -268,11 +565,14 @@
       const n = readAmount();
       if (!n) return say('walletMsg', 'Type an amount bigger than 0 first.', false);
       if (n > balance) return say('walletMsg', "Oops, you only have " + money(balance) + ". Try a smaller amount.", false);
+      if (!checkLimitBefore(n)) return;
       balance -= n;
+      spent += n;
       activity.push({ text: $('note').value.trim() || 'Spent', amount: -n });
       say('walletMsg', 'Spent ' + money(n) + '. ' + money(balance) + ' left.', true);
       $('amount').value = ''; $('note').value = '';
       render();
+      checkLimitAfter();
     });
 
     $('saveBtn').addEventListener('click', () => {
@@ -296,6 +596,8 @@
     const root = document.documentElement;
     const settingsBtn = $('settingsBtn');
     const settingsPanel = $('settingsPanel');
+    const notifPanel = $('notifPanel');
+    const bellBtn = $('bellBtn');
     const DEFAULTS = { theme: 'purple', size: '100' };
 
     function loadSettings() {
@@ -332,14 +634,27 @@
     function toggleSettings(open) {
       settingsPanel.hidden = !open;
       settingsBtn.setAttribute('aria-expanded', String(open));
+      if (open) toggleNotifs(false);
+    }
+    function toggleNotifs(open) {
+      notifPanel.hidden = !open;
+      bellBtn.setAttribute('aria-expanded', String(open));
+      if (open) { unread = 0; updateBadge(); toggleSettings(false); }
     }
     settingsBtn.addEventListener('click', () => toggleSettings(settingsPanel.hidden));
+    bellBtn.addEventListener('click', () => toggleNotifs(notifPanel.hidden));
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !settingsPanel.hidden) { toggleSettings(false); settingsBtn.focus(); }
+      if (e.key !== 'Escape') return;
+      if (!settingsPanel.hidden) { toggleSettings(false); settingsBtn.focus(); }
+      if (!notifPanel.hidden) { toggleNotifs(false); bellBtn.focus(); }
     });
     document.addEventListener('click', (e) => {
-      if (!settingsPanel.hidden && !e.target.closest('.settings-wrap')) toggleSettings(false);
+      if (e.target.closest('.settings-wrap')) return;
+      if (!settingsPanel.hidden) toggleSettings(false);
+      if (!notifPanel.hidden) toggleNotifs(false);
     });
+
+    renderNotifs();
   </script>
 </body>
 </html>
