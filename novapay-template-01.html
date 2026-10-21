@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NovaPay — Teen Banking Basics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;600;700;800&family=Poppins:wght@400;600;700;800&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #f4f5f9; --card: #ffffff; --ink: #1a1d29; --text: #374151;
@@ -17,6 +20,10 @@
     html[data-font="inter"] { --font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; }
     html[data-font="poppins"] { --font-family: Poppins, 'Trebuchet MS', sans-serif; }
     html[data-font="atkinson"] { --font-family: 'Atkinson Hyperlegible', Arial, sans-serif; }
+    html[data-font="nunito"] { --font-family: Nunito, 'Trebuchet MS', sans-serif; }
+    html[data-font="roboto"] { --font-family: Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; }
+    html[data-font="opensans"] { --font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif; }
+    html[data-font="merriweather"] { --font-family: Merriweather, Georgia, 'Times New Roman', serif; }
     /* Colour themes (set by the Settings menu) */
     html[data-theme="ocean"]  { --accent: #1d5fd1; --tint: #e6eefc; }
     html[data-theme="forest"] { --accent: #12805c; --tint: #e3f4ec; }
@@ -249,13 +256,21 @@
         <legend>Font style</legend>
         <div class="fonts">
           <input type="radio" name="font" id="f-system" value="system" checked />
-          <label for="f-system">System</label>
+          <label for="f-system">System UI</label>
           <input type="radio" name="font" id="f-inter" value="inter" />
           <label for="f-inter">Inter</label>
           <input type="radio" name="font" id="f-poppins" value="poppins" />
           <label for="f-poppins">Poppins</label>
           <input type="radio" name="font" id="f-atkinson" value="atkinson" />
           <label for="f-atkinson">Atkinson Hyperlegible</label>
+          <input type="radio" name="font" id="f-nunito" value="nunito" />
+          <label for="f-nunito">Nunito</label>
+          <input type="radio" name="font" id="f-roboto" value="roboto" />
+          <label for="f-roboto">Roboto</label>
+          <input type="radio" name="font" id="f-opensans" value="opensans" />
+          <label for="f-opensans">Open Sans</label>
+          <input type="radio" name="font" id="f-merriweather" value="merriweather" />
+          <label for="f-merriweather">Merriweather</label>
         </div>
       </fieldset>
 
@@ -681,7 +696,7 @@
     function loadSettings() {
       try {
         const loaded = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('novapaySettings')) || {});
-        if (!['system', 'inter', 'poppins', 'atkinson'].includes(loaded.font)) loaded.font = DEFAULTS.font;
+        if (!['system', 'inter', 'poppins', 'atkinson', 'nunito', 'roboto', 'opensans', 'merriweather'].includes(loaded.font)) loaded.font = DEFAULTS.font;
         return loaded;
       }
       catch (e) { return Object.assign({}, DEFAULTS); }
