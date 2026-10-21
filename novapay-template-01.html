@@ -11,7 +11,14 @@
       --good: #12805c; --bad: #b42318;
       --shadow: 0 12px 30px rgba(26, 29, 41, 0.08); --radius: 20px;
     }
+    /* Colour themes (set by the Settings menu) */
+    html[data-theme="ocean"]  { --accent: #1d5fd1; --tint: #e6eefc; }
+    html[data-theme="forest"] { --accent: #12805c; --tint: #e3f4ec; }
+    html[data-theme="berry"]  { --accent: #c2255c; --tint: #fce8f0; }
+    html[data-theme="sunset"] { --accent: #b45309; --tint: #fdf0e0; }
+
     * { box-sizing: border-box; }
+    html { font-size: 100%; }
     html, body { margin: 0; min-height: 100%; }
     body {
       font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -59,10 +66,90 @@
     }
     .plus { color: var(--good); font-weight: 700; } .minus { color: var(--bad); font-weight: 700; }
     .tips { margin-top: 18px; padding: 18px 20px; background: var(--tint); border-radius: 16px; color: var(--ink); }
+
+    /* Settings */
+    .settings-wrap { position: fixed; top: 16px; right: 16px; z-index: 10; }
+    .settings-btn {
+      flex: none; display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 16px; box-shadow: var(--shadow);
+    }
+    .settings-panel {
+      position: absolute; top: calc(100% + 10px); right: 0; width: min(320px, calc(100vw - 32px));
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: var(--shadow); padding: 18px;
+    }
+    .settings-panel[hidden] { display: none; }
+    .settings-panel h2 { font-size: 1.1rem; color: var(--ink); margin-bottom: 14px; }
+    .settings-panel fieldset { border: 0; padding: 0; margin: 0 0 16px; }
+    .settings-panel legend { font-weight: 700; color: var(--ink); font-size: .9rem; padding: 0; margin-bottom: 8px; }
+    .swatches, .sizes { display: flex; gap: 10px; flex-wrap: wrap; }
+    .swatches input, .sizes input {
+      position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0;
+    }
+    .swatches label {
+      display: inline-flex; align-items: center; gap: 6px; margin: 0; cursor: pointer;
+      padding: 6px 12px 6px 6px; border: 2px solid var(--border); border-radius: 999px;
+      font-weight: 600; font-size: .85rem;
+    }
+    .dot { width: 22px; height: 22px; border-radius: 50%; display: inline-block; }
+    .sizes label {
+      margin: 0; cursor: pointer; padding: 8px 16px; border: 2px solid var(--border);
+      border-radius: 999px; font-weight: 700;
+    }
+    .swatches input:checked + label, .sizes input:checked + label {
+      border-color: var(--accent); background: var(--tint); color: var(--accent);
+    }
+    .swatches input:focus-visible + label, .sizes input:focus-visible + label {
+      outline: 3px solid var(--accent); outline-offset: 2px;
+    }
+    .reset { width: 100%; }
+
     @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    /* Leave room for the settings button on small screens */
+    @media (max-width: 600px) { body { padding-top: 72px; } }
   </style>
 </head>
 <body>
+  <!-- Settings (top right) -->
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel">
+      <span aria-hidden="true">⚙️</span> Settings
+    </button>
+    <div class="settings-panel" id="settingsPanel" role="dialog" aria-label="Settings" hidden>
+      <h2>Make it yours</h2>
+
+      <fieldset>
+        <legend>App colour</legend>
+        <div class="swatches">
+          <input type="radio" name="theme" id="t-purple" value="purple" checked />
+          <label for="t-purple"><span class="dot" style="background:#5a50e0"></span>Purple</label>
+          <input type="radio" name="theme" id="t-ocean" value="ocean" />
+          <label for="t-ocean"><span class="dot" style="background:#1d5fd1"></span>Ocean</label>
+          <input type="radio" name="theme" id="t-forest" value="forest" />
+          <label for="t-forest"><span class="dot" style="background:#12805c"></span>Forest</label>
+          <input type="radio" name="theme" id="t-berry" value="berry" />
+          <label for="t-berry"><span class="dot" style="background:#c2255c"></span>Berry</label>
+          <input type="radio" name="theme" id="t-sunset" value="sunset" />
+          <label for="t-sunset"><span class="dot" style="background:#b45309"></span>Sunset</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Text size</legend>
+        <div class="sizes">
+          <input type="radio" name="size" id="s-small" value="90" />
+          <label for="s-small" style="font-size:.85rem">Small</label>
+          <input type="radio" name="size" id="s-medium" value="100" checked />
+          <label for="s-medium" style="font-size:1rem">Medium</label>
+          <input type="radio" name="size" id="s-large" value="120" />
+          <label for="s-large" style="font-size:1.15rem">Large</label>
+        </div>
+      </fieldset>
+
+      <button class="alt reset" id="resetBtn" type="button">Reset to default</button>
+    </div>
+  </div>
+
   <main class="shell">
     <section class="hero" aria-labelledby="title">
       <div class="eyebrow">NovaPay for teens</div>
@@ -204,6 +291,55 @@
     $('goalName').addEventListener('input', render);
     $('goalTarget').addEventListener('input', render);
     render();
+
+    /* ---------- Settings: colour + text size ---------- */
+    const root = document.documentElement;
+    const settingsBtn = $('settingsBtn');
+    const settingsPanel = $('settingsPanel');
+    const DEFAULTS = { theme: 'purple', size: '100' };
+
+    function loadSettings() {
+      try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('novapaySettings')) || {}); }
+      catch (e) { return Object.assign({}, DEFAULTS); }
+    }
+    function saveSettings(s) {
+      try { localStorage.setItem('novapaySettings', JSON.stringify(s)); } catch (e) {}
+    }
+    function applySettings(s) {
+      if (s.theme === 'purple') root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', s.theme);
+      root.style.fontSize = s.size + '%';
+      const t = document.querySelector('input[name="theme"][value="' + s.theme + '"]');
+      const z = document.querySelector('input[name="size"][value="' + s.size + '"]');
+      if (t) t.checked = true;
+      if (z) z.checked = true;
+    }
+
+    let settings = loadSettings();
+    applySettings(settings);
+
+    document.querySelectorAll('input[name="theme"]').forEach((r) =>
+      r.addEventListener('change', () => { settings.theme = r.value; applySettings(settings); saveSettings(settings); }));
+    document.querySelectorAll('input[name="size"]').forEach((r) =>
+      r.addEventListener('change', () => { settings.size = r.value; applySettings(settings); saveSettings(settings); }));
+
+    $('resetBtn').addEventListener('click', () => {
+      settings = Object.assign({}, DEFAULTS);
+      applySettings(settings);
+      saveSettings(settings);
+    });
+
+    function toggleSettings(open) {
+      settingsPanel.hidden = !open;
+      settingsBtn.setAttribute('aria-expanded', String(open));
+    }
+    settingsBtn.addEventListener('click', () => toggleSettings(settingsPanel.hidden));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !settingsPanel.hidden) { toggleSettings(false); settingsBtn.focus(); }
+    });
+    document.addEventListener('click', (e) => {
+      if (!settingsPanel.hidden && !e.target.closest('.settings-wrap')) toggleSettings(false);
+    });
   </script>
 </body>
 </html>
