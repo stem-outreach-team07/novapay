@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NovaPay — Teen Banking Basics</title>
+  <title>Teen Bank — Teen Banking Basics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700;800&family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;600;700;800&family=Poppins:wght@400;600;700;800&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -308,7 +308,7 @@
   <main class="shell">
     <section class="hero" aria-labelledby="title">
       <div class="hero-text">
-        <div class="eyebrow">NovaPay for teens</div>
+        <div class="eyebrow">Teen Bank</div>
         <h1 id="title">Learn banking the easy way</h1>
         <p class="lede">Practice with pretend money. Add it, spend it, save for a goal, and see how it all adds up. No real money, no risk!</p>
       </div>
@@ -561,7 +561,7 @@
       renderNotifs();
       showToast(n);
       if (deviceAlerts && 'Notification' in window && Notification.permission === 'granted') {
-        try { new Notification('NovaPay: ' + title, { body }); } catch (e) {}
+        try { new Notification('Teen Bank: ' + title, { body }); } catch (e) {}
       }
     }
 
