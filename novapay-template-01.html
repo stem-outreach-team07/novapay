@@ -72,6 +72,10 @@
     .toggle-line { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .toggle-line input { width: auto; margin: 0; }
     .toggle-line label { margin: 0; }
+    /* Parental controls */
+    #pcBox[hidden] { display: none; }
+    #pcBox { margin-top: 6px; }
+    input:disabled, select:disabled, button:disabled { opacity: .55; cursor: not-allowed; }
 
     /* Top-right controls */
     .settings-wrap { position: fixed; top: 16px; right: 16px; z-index: 10; }
@@ -295,7 +299,7 @@
       </section>
 
       <!-- Feature 6: Notification settings -->
-      <section class="panel" aria-labelledby="nset-h">
+      <section class="panel" id="nsetPanel" aria-labelledby="nset-h">
         <h2 id="nset-h">Notification Settings</h2>
         <p class="hint">Choose which alerts you want.</p>
         <div class="toggle-line">
@@ -321,6 +325,31 @@
           <button id="deviceBtn" class="alt" type="button">Turn on device alerts</button>
         </div>
         <p class="msg" id="deviceMsg" role="status"></p>
+      </section>
+
+      <!-- Feature 7: Parental controls -->
+      <section class="panel" id="pcPanel" aria-labelledby="pc-h">
+        <h2 id="pc-h">Parental Controls</h2>
+        <p class="hint">A parent or carer can set a spending cap and lock settings with a PIN.</p>
+        <div class="toggle-line">
+          <input type="checkbox" id="pcEnabled" />
+          <label for="pcEnabled"><strong>Install parental controls</strong></label>
+        </div>
+        <div id="pcBox" hidden>
+          <label for="pcPin">Parent PIN (4 digits)</label>
+          <input id="pcPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" placeholder="4 digits" />
+          <label for="pcMaxSpend">Max spend per transaction (£)</label>
+          <input id="pcMaxSpend" type="number" min="1" step="0.01" value="20" />
+          <div class="toggle-line">
+            <input type="checkbox" id="pcLockSettings" checked />
+            <label for="pcLockSettings">Require PIN to change settings</label>
+          </div>
+          <div class="row">
+            <button id="pcSaveBtn" type="button">Save controls</button>
+            <button id="pcUnlockBtn" class="alt" type="button">Parent unlock</button>
+          </div>
+        </div>
+        <p class="msg" id="pcMsg" role="status"></p>
       </section>
     </div>
 
@@ -564,6 +593,7 @@
     $('spendBtn').addEventListener('click', () => {
       const n = readAmount();
       if (!n) return say('walletMsg', 'Type an amount bigger than 0 first.', false);
+      if (!checkParentalBefore(n)) return;
       if (n > balance) return say('walletMsg', "Oops, you only have " + money(balance) + ". Try a smaller amount.", false);
       if (!checkLimitBefore(n)) return;
       balance -= n;
@@ -653,6 +683,95 @@
       if (!settingsPanel.hidden) toggleSettings(false);
       if (!notifPanel.hidden) toggleNotifs(false);
     });
+
+    /* ---------- Parental controls ---------- */
+    // Saved config lives in localStorage; "unlocked" is session-only (resets on reload)
+    const PC_KEY = 'novapayParental';
+    const parental = { enabled: false, pin: '', maxSpend: 20, lockSettings: true };
+    let parentUnlocked = false;
+
+    function loadParental() {
+      try {
+        const d = JSON.parse(localStorage.getItem(PC_KEY)) || {};
+        parental.enabled = d.enabled === true && /^\d{4}$/.test(d.pin);
+        parental.pin = /^\d{4}$/.test(d.pin) ? d.pin : '';
+        parental.maxSpend = d.maxSpend > 0 ? Number(d.maxSpend) : 20;
+        parental.lockSettings = d.lockSettings !== false;
+      } catch (e) {}
+    }
+    function saveParental() {
+      try { localStorage.setItem(PC_KEY, JSON.stringify(parental)); } catch (e) {}
+    }
+    const settingsLocked = () => parental.enabled && parental.lockSettings && !parentUnlocked;
+
+    // Returns true if the spend is allowed
+    function checkParentalBefore(n) {
+      if (parental.enabled && n > parental.maxSpend) {
+        say('walletMsg', 'Blocked by parental controls: the most you can spend at once is ' + money(parental.maxSpend) + '.', false);
+        notify('limit', 'bad', 'Blocked by parental controls', 'That ' + money(n) + ' spend is above the ' + money(parental.maxSpend) + ' parent limit.');
+        return false;
+      }
+      return true;
+    }
+
+    // Disable protected settings (theme, text size, notification settings, spending limit, parental form) while locked
+    function applyLock() {
+      const locked = settingsLocked();
+      document.querySelectorAll('#settingsPanel input, #settingsPanel button, #nsetPanel input, #nsetPanel select, #nsetPanel button, #limitInput, #resetSpentBtn, #pcEnabled, #pcMaxSpend, #pcLockSettings, #pcSaveBtn')
+        .forEach((el) => { el.disabled = locked; });
+    }
+
+    function syncParentalUI() {
+      $('pcEnabled').checked = parental.enabled || !$('pcBox').hidden;
+      $('pcMaxSpend').value = parental.maxSpend;
+      $('pcLockSettings').checked = parental.lockSettings;
+      applyLock();
+    }
+
+    $('pcEnabled').addEventListener('change', () => {
+      const on = $('pcEnabled').checked;
+      $('pcBox').hidden = !on;
+      if (on) {
+        if (parental.pin) { parental.enabled = true; saveParental(); say('pcMsg', 'Parental controls are on.', true); }
+        else say('pcMsg', 'Choose a 4-digit PIN, then press Save controls.', false);
+      } else {
+        parental.enabled = false; parentUnlocked = false;
+        saveParental();
+        say('pcMsg', 'Parental controls are off.', true);
+      }
+      applyLock();
+    });
+
+    $('pcSaveBtn').addEventListener('click', () => {
+      const pin = $('pcPin').value.trim();
+      const max = parseFloat($('pcMaxSpend').value);
+      if (pin && !/^\d{4}$/.test(pin)) return say('pcMsg', 'The PIN must be exactly 4 digits.', false);
+      if (!pin && !parental.pin) return say('pcMsg', 'Please choose a 4-digit PIN.', false);
+      if (!(max > 0)) return say('pcMsg', 'Max spend must be more than £0.', false);
+      if (pin) parental.pin = pin;
+      parental.maxSpend = max;
+      parental.lockSettings = $('pcLockSettings').checked;
+      parental.enabled = true;
+      parentUnlocked = false;
+      saveParental();
+      $('pcPin').value = '';
+      syncParentalUI();
+      say('pcMsg', 'Controls saved. Spends over ' + money(max) + ' are blocked' + (parental.lockSettings ? ' and settings are locked.' : '.'), true);
+    });
+
+    $('pcUnlockBtn').addEventListener('click', () => {
+      if (!parental.enabled) return say('pcMsg', 'Save your controls first.', false);
+      if (!settingsLocked()) return say('pcMsg', parental.lockSettings ? 'Already unlocked.' : 'Settings are not locked.', true);
+      if ($('pcPin').value.trim() !== parental.pin) return say('pcMsg', 'Wrong PIN. Type the parent PIN above, then press Parent unlock.', false);
+      parentUnlocked = true;
+      $('pcPin').value = '';
+      applyLock();
+      say('pcMsg', 'Unlocked. Settings can be changed until you Save controls or reload.', true);
+    });
+
+    loadParental();
+    $('pcBox').hidden = !parental.enabled;
+    syncParentalUI();
 
     renderNotifs();
   </script>
