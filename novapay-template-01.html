@@ -58,6 +58,30 @@
       border-radius: var(--radius); box-shadow: var(--shadow);
     }
     .hero { padding: 28px; margin-bottom: 18px; }
+    .hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .hero-text { flex: 1 1 auto; min-width: 0; }
+    .mascot { flex: 0 0 auto; width: 260px; max-width: 100%; margin: 0; text-align: center; }
+    .mascot svg { width: 100%; height: auto; display: block; overflow: visible; }
+    .mascot figcaption { font-size: .85rem; font-weight: 700; color: var(--ink); margin-top: 2px; }
+    .mascot .m-body { fill: var(--accent); }
+    .mascot .m-stripe { fill: #1a1d29; opacity: .8; }
+    .mascot .m-chip { fill: var(--tint); stroke: var(--card); stroke-width: 1; }
+    .mascot .m-face { fill: var(--card); }
+    .mascot .m-line { stroke: var(--ink); fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+    .mascot .m-hand { fill: var(--ink); }
+    .mascot .m-eye { fill: #1a1d29; }
+    .mascot .m-shine { fill: #fff; }
+    .mascot .m-cheek { fill: #ff8fa8; opacity: .7; }
+    .mascot .m-bubble { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+    .mascot .m-bubble-text { fill: var(--ink); font-size: 13px; font-weight: 800; font-family: inherit; }
+    @media (prefers-reduced-motion: no-preference) {
+      .mascot .m-bob { animation: m-bob 3s ease-in-out infinite; }
+      .mascot .m-wave { transform-box: fill-box; transform-origin: 0% 100%; animation: m-wave 1.6s ease-in-out infinite; }
+      @keyframes m-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+      @keyframes m-wave { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-14deg); } }
+    }
+    @media (max-width: 860px) { .hero { flex-direction: column; align-items: flex-start; } .mascot { width: 220px; align-self: center; } }
+    @media (max-width: 600px) { .mascot { width: 180px; } }
     .eyebrow {
       text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
       font-weight: 700; color: var(--accent); margin-bottom: 10px;
@@ -283,9 +307,35 @@
 
   <main class="shell">
     <section class="hero" aria-labelledby="title">
-      <div class="eyebrow">NovaPay for teens</div>
-      <h1 id="title">Learn banking the easy way</h1>
-      <p class="lede">Practice with pretend money. Add it, spend it, save for a goal, and see how it all adds up. No real money, no risk!</p>
+      <div class="hero-text">
+        <div class="eyebrow">NovaPay for teens</div>
+        <h1 id="title">Learn banking the easy way</h1>
+        <p class="lede">Practice with pretend money. Add it, spend it, save for a goal, and see how it all adds up. No real money, no risk!</p>
+      </div>
+      <figure class="mascot">
+        <svg viewBox="0 0 260 250" role="img" aria-label="Credit The card mascot, a smiling credit card saying: Safety with savings">
+          <rect class="m-bubble" x="4" y="4" width="146" height="34" rx="14"/>
+          <path class="m-bubble" d="M110 37 L124 52 L128 37"/>
+          <rect x="108" y="34" width="22" height="4" fill="var(--tint)"/>
+          <text class="m-bubble-text" x="77" y="26" text-anchor="middle">Safety with savings</text>
+          <g class="m-bob">
+            <path class="m-line" d="M100 200 L90 232 M150 200 L160 232"/>
+            <path class="m-line" d="M90 232 L80 234 M160 232 L170 234"/>
+            <ellipse class="m-hand" cx="78" cy="235" rx="6" ry="4"/><ellipse class="m-hand" cx="172" cy="235" rx="6" ry="4"/>
+            <path class="m-line" d="M60 140 L36 160"/><circle class="m-hand" cx="34" cy="162" r="5"/>
+            <g class="m-wave"><path class="m-line" d="M190 140 L222 104"/><circle class="m-hand" cx="224" cy="101" r="6"/></g>
+            <rect class="m-body" x="50" y="68" width="150" height="134" rx="18" transform="rotate(0)"/>
+            <rect class="m-stripe" x="50" y="86" width="150" height="16"/>
+            <rect class="m-chip" x="64" y="112" width="26" height="20" rx="4"/>
+            <circle class="m-eye" cx="105" cy="138" r="10"/><circle class="m-eye" cx="145" cy="138" r="10"/>
+            <circle class="m-shine" cx="108" cy="134" r="3.5"/><circle class="m-shine" cx="148" cy="134" r="3.5"/>
+            <circle class="m-shine" cx="102" cy="142" r="1.8"/><circle class="m-shine" cx="142" cy="142" r="1.8"/>
+            <ellipse class="m-cheek" cx="88" cy="156" rx="8" ry="5"/><ellipse class="m-cheek" cx="162" cy="156" rx="8" ry="5"/>
+            <path class="m-line" d="M112 158 Q125 174 138 158" style="stroke:#1a1d29"/>
+          </g>
+        </svg>
+        <figcaption>Credit The card</figcaption>
+      </figure>
     </section>
 
     <div class="grid">
